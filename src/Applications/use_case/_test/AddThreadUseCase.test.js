@@ -1,5 +1,5 @@
-const NewThread = require('../../../Domains/threads/entitites/NewThread');
-const AddedThread = require('../../../Domains/threads/entitites/AddedThread');
+const NewThread = require('../../../Domains/threads/entities/NewThread');
+const AddedThread = require('../../../Domains/threads/entities/AddedThread');
 const ThreadRepository = require('../../../Domains/threads/ThreadRepository');
 const AddThreadUseCase = require('../AddThreadUseCase');
 
@@ -9,12 +9,12 @@ describe('AddThreadUseCase', () => {
     const useCasePayload = {
       title: 'thread title',
       body: 'thread body',
+      credentialId: 'user-123',
     };
-    const credentialId = 'user-321';
     const expectedAddedThread = new AddedThread({
       id: 'thread-321',
       title: useCasePayload.title,
-      owner: credentialId,
+      owner: useCasePayload.credentialId,
     });
     const mockThreadRepository = new ThreadRepository();
 
@@ -28,7 +28,7 @@ describe('AddThreadUseCase', () => {
     });
 
     // Action
-    const addedThread = await addThreadUseCase.execute(useCasePayload, credentialId);
+    const addedThread = await addThreadUseCase.execute(useCasePayload);
 
     // Assert
     expect(addedThread).toStrictEqual(expectedAddedThread);
@@ -37,7 +37,7 @@ describe('AddThreadUseCase', () => {
         title: useCasePayload.title,
         body: useCasePayload.body,
       }),
-      credentialId,
+      useCasePayload.credentialId,
     );
   });
 });
