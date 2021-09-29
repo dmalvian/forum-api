@@ -81,6 +81,8 @@ const createServer = async (container) => {
         return h.continue;
       }
 
+      console.log(response);
+
       // penanganan server error sesuai kebutuhan
       const newResponse = h.response({
         status: 'error',
