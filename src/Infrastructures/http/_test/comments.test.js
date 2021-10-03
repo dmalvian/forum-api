@@ -18,7 +18,7 @@ describe('/threads/{threadId}/comments endpoint', () => {
   });
 
   describe('when POST /threads/{threadId}/comments', () => {
-    it('should response 201 and persisted thread', async () => {
+    it('should response 201 and persisted comment', async () => {
       // Arrange
       const requestPayload = {
         content: 'comment content',

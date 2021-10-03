@@ -129,4 +129,37 @@ describe('CommentRepositoryPostgres', () => {
       expect(comments[0].is_deleted).toEqual(true);
     });
   });
+
+  describe('getCommentsByThreadId function', () => {
+    it('should return comments array correctly', async () => {
+      // Arrange
+      await UsersTableTestHelper.addUser({ id: 'user-123' });
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123', date: '2021-08-08T07:22:33.555Z' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-124', date: '2021-08-08T07:26:21.338Z' });
+      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
+
+      // Action
+      const comments = await commentRepositoryPostgres.getCommentsByThreadId('thread-123');
+
+      // Assert
+      expect(comments).toHaveLength(2);
+      expect(comments).toEqual([
+        {
+          id: 'comment-123',
+          username: 'dicoding',
+          date: '2021-08-08T07:22:33.555Z',
+          content: 'comment content',
+          isDeleted: false,
+        },
+        {
+          id: 'comment-124',
+          username: 'dicoding',
+          date: '2021-08-08T07:26:21.338Z',
+          content: 'comment content',
+          isDeleted: false,
+        },
+      ]);
+    });
+  });
 });
