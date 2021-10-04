@@ -4,4 +4,10 @@ const mapCommentsTableToModel = ({
   id, username, date, content, isDeleted: is_deleted,
 });
 
-module.exports = { mapCommentsTableToModel };
+const mapRepliesTableToModel = ({
+  id, username, date, content, is_deleted, comment_id,
+}) => ({
+  id, username, date, content, isDeleted: is_deleted, commentId: comment_id,
+});
+
+module.exports = { mapCommentsTableToModel, mapRepliesTableToModel };

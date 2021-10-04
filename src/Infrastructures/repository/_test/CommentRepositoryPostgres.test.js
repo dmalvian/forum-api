@@ -162,4 +162,27 @@ describe('CommentRepositoryPostgres', () => {
       ]);
     });
   });
+
+  describe('verifyAvailableComment function', () => {
+    it('should throw NotFoundError when comment not available', async () => {
+      // Arrange
+      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
+
+      // Action & Assert
+      await expect(commentRepositoryPostgres.verifyAvailableComment('comment-123'))
+        .rejects.toThrowError(NotFoundError);
+    });
+
+    it('should not throw NotFoundError when comment available', async () => {
+      // Arrange
+      await UsersTableTestHelper.addUser({ id: 'user-123' });
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123' });
+      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
+
+      // Action & Assert
+      await expect(commentRepositoryPostgres.verifyAvailableComment('comment-123'))
+        .resolves.not.toThrowError(NotFoundError);
+    });
+  });
 });
