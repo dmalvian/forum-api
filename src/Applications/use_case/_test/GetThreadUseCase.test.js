@@ -26,6 +26,7 @@ describe('GetThreadUseCase', () => {
         date: '2021-08-08T07:22:33.555Z',
         content: 'comment content',
         isDeleted: false,
+        likeCount: 2,
       },
     ];
     const expectedReplies = [

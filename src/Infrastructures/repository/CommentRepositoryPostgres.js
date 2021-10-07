@@ -55,10 +55,14 @@ class CommentRepositoryPostgres extends CommentRepository {
 
   async getCommentsByThreadId(threadId) {
     const query = {
-      text: `SELECT c.id, u.username, c.date, c.content, c.is_deleted
-        FROM comments AS c INNER JOIN users AS u
-        ON c.owner = u.id
+      text: `SELECT c.id, u.username, c.date, c.content, c.is_deleted, COUNT(cl.comment_id) AS like_count
+        FROM comments AS c
+        INNER JOIN users AS u
+          ON c.owner = u.id
+        LEFT JOIN commentlikes as cl
+          ON c.id = cl.comment_id
         WHERE c.thread_id = $1
+        GROUP BY c.id, u.username
         ORDER BY c.date`,
       values: [threadId],
     };
@@ -79,6 +83,39 @@ class CommentRepositoryPostgres extends CommentRepository {
     if (!result.rowCount) {
       throw new NotFoundError('comment tidak tersedia');
     }
+  }
+
+  async verifyIfCommentLikedByUser(id, userId) {
+    const query = {
+      text: 'SELECT * FROM commentlikes WHERE comment_id = $1 AND user_id = $2',
+      values: [id, userId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (result.rowCount) {
+      return true;
+    }
+
+    return false;
+  }
+
+  async likeComment(id, userId) {
+    const query = {
+      text: 'INSERT INTO commentlikes VALUES($1, $2)',
+      values: [id, userId],
+    };
+
+    await this._pool.query(query);
+  }
+
+  async cancelLikeComment(id, userId) {
+    const query = {
+      text: 'DELETE FROM commentlikes WHERE comment_id = $1 AND user_id = $2',
+      values: [id, userId],
+    };
+
+    await this._pool.query(query);
   }
 }
 

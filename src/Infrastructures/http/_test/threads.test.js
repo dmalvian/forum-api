@@ -143,6 +143,7 @@ describe('/threads endpoint', () => {
       expect(responseJson.data.thread).toBeDefined();
       expect(responseJson.data.thread.comments).toBeDefined();
       expect(responseJson.data.thread.comments[0].replies).toBeDefined();
+      expect(responseJson.data.thread.comments[0].likeCount).toBeDefined();
     });
 
     it('should response 404 when threadId is not valid', async () => {
