@@ -1,4 +1,5 @@
 const CommentsTableTestHelper = require('../../../../tests/CommentsTableTestHelper');
+const CommentLikesTableTestHelper = require('../../../../tests/CommentLikesTableTestHelper');
 const ThreadsTableTestHelper = require('../../../../tests/ThreadsTableTestHelper');
 const UsersTableTestHelper = require('../../../../tests/UsersTableTestHelper');
 const NotFoundError = require('../../../Commons/exceptions/NotFoundError');
@@ -9,6 +10,7 @@ const CommentRepositoryPostgres = require('../CommentRepositoryPostgres');
 
 describe('CommentRepositoryPostgres', () => {
   afterEach(async () => {
+    await CommentLikesTableTestHelper.cleanTable();
     await CommentsTableTestHelper.cleanTable();
     await ThreadsTableTestHelper.cleanTable();
     await UsersTableTestHelper.cleanTable();
@@ -137,6 +139,7 @@ describe('CommentRepositoryPostgres', () => {
       await ThreadsTableTestHelper.addThread({ id: 'thread-123' });
       await CommentsTableTestHelper.addComment({ id: 'comment-123', date: '2021-08-08T07:22:33.555Z' });
       await CommentsTableTestHelper.addComment({ id: 'comment-124', date: '2021-08-08T07:26:21.338Z' });
+      await CommentLikesTableTestHelper.addCommentLike('comment-123', 'user-123');
       const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
 
       // Action
@@ -151,6 +154,7 @@ describe('CommentRepositoryPostgres', () => {
           date: '2021-08-08T07:22:33.555Z',
           content: 'comment content',
           isDeleted: false,
+          likeCount: 1,
         },
         {
           id: 'comment-124',
@@ -158,6 +162,7 @@ describe('CommentRepositoryPostgres', () => {
           date: '2021-08-08T07:26:21.338Z',
           content: 'comment content',
           isDeleted: false,
+          likeCount: 0,
         },
       ]);
     });
@@ -183,6 +188,72 @@ describe('CommentRepositoryPostgres', () => {
       // Action & Assert
       await expect(commentRepositoryPostgres.verifyAvailableComment('comment-123'))
         .resolves.not.toThrowError(NotFoundError);
+    });
+  });
+
+  describe('verifyIfCommentLikedByUser function', () => {
+    it('should return false when the comment is not liked by provided user', async () => {
+      // Arrange
+      await UsersTableTestHelper.addUser({ id: 'user-123' });
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123' });
+      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
+
+      // Action
+      const isCommentLiked = await commentRepositoryPostgres.verifyIfCommentLikedByUser('comment-123', 'user-123');
+
+      // Assert
+      expect(isCommentLiked).toEqual(false);
+    });
+
+    it('should return true when the comment is already liked by provided user', async () => {
+      // Arrange
+      await UsersTableTestHelper.addUser({ id: 'user-123' });
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123' });
+      await CommentLikesTableTestHelper.addCommentLike('comment-123', 'user-123');
+      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
+
+      // Action
+      const isCommentLiked = await commentRepositoryPostgres.verifyIfCommentLikedByUser('comment-123', 'user-123');
+
+      // Assert
+      expect(isCommentLiked).toEqual(true);
+    });
+  });
+
+  describe('likeComment function', () => {
+    it('should add like data to database', async () => {
+      // Arrange
+      await UsersTableTestHelper.addUser({ id: 'user-123' });
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123' });
+      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
+
+      // Action
+      await commentRepositoryPostgres.likeComment('comment-123', 'user-123');
+
+      // Assert
+      const likes = await CommentLikesTableTestHelper.findCommentLikes('comment-123', 'user-123');
+      expect(likes).toHaveLength(1);
+    });
+  });
+
+  describe('cancelLikeComment function', () => {
+    it('should delete like data from database', async () => {
+      // Arrange
+      await UsersTableTestHelper.addUser({ id: 'user-123' });
+      await ThreadsTableTestHelper.addThread({ id: 'thread-123' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123' });
+      await CommentLikesTableTestHelper.addCommentLike('comment-123', 'user-123');
+      const commentRepositoryPostgres = new CommentRepositoryPostgres(pool, {});
+
+      // Action
+      await commentRepositoryPostgres.cancelLikeComment('comment-123', 'user-123');
+
+      // Assert
+      const likes = await CommentLikesTableTestHelper.findCommentLikes('comment-123', 'user-123');
+      expect(likes).toHaveLength(0);
     });
   });
 });

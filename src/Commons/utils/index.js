@@ -1,7 +1,7 @@
 const mapCommentsTableToModel = ({
-  id, username, date, content, is_deleted,
+  id, username, date, content, is_deleted, like_count,
 }) => ({
-  id, username, date, content, isDeleted: is_deleted,
+  id, username, date, content, isDeleted: is_deleted, likeCount: Number(like_count),
 });
 
 const mapRepliesTableToModel = ({

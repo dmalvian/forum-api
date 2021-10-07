@@ -3,6 +3,7 @@ const ThreadsTableTestHelper = require('../../../../tests/ThreadsTableTestHelper
 const UsersTableTestHelper = require('../../../../tests/UsersTableTestHelper');
 const ServerTestHelper = require('../../../../tests/ServerTestHelper');
 const CommentsTableTestHelper = require('../../../../tests/CommentsTableTestHelper');
+const CommentLikesTableTestHelper = require('../../../../tests/CommentLikesTableTestHelper');
 const container = require('../../container');
 const createServer = require('../createServer');
 
@@ -253,6 +254,57 @@ describe('/threads/{threadId}/comments endpoint', () => {
       expect(response.statusCode).toEqual(403);
       expect(responseJson.status).toEqual('fail');
       expect(responseJson.message).toEqual('anda tidak berhak mengakses resource ini');
+    });
+  });
+
+  describe('when PUT /threads/{threadId}/comments/{commentId}/likes', () => {
+    it('should response 200 when comment is not liked yet', async () => {
+      // Arrange
+      const accessToken = await ServerTestHelper.getAccessToken();
+      const threadId = 'thread-123';
+      const commentId = 'comment-123';
+      await ThreadsTableTestHelper.addThread({ id: threadId });
+      await CommentsTableTestHelper.addComment({ id: commentId });
+      const server = await createServer(container);
+
+      // Action
+      const response = await server.inject({
+        method: 'PUT',
+        url: `/threads/${threadId}/comments/${commentId}/likes`,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      // Assert
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(200);
+      expect(responseJson.status).toEqual('success');
+    });
+
+    it('should response 200 when comment is already liked', async () => {
+      // Arrange
+      const accessToken = await ServerTestHelper.getAccessToken();
+      const threadId = 'thread-123';
+      const commentId = 'comment-123';
+      await ThreadsTableTestHelper.addThread({ id: threadId });
+      await CommentsTableTestHelper.addComment({ id: commentId });
+      await CommentLikesTableTestHelper.addCommentLike(commentId, 'user-123');
+      const server = await createServer(container);
+
+      // Action
+      const response = await server.inject({
+        method: 'PUT',
+        url: `/threads/${threadId}/comments/${commentId}/likes`,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      // Assert
+      const responseJson = JSON.parse(response.payload);
+      expect(response.statusCode).toEqual(200);
+      expect(responseJson.status).toEqual('success');
     });
   });
 });

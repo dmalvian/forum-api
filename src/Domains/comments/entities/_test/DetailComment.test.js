@@ -21,6 +21,7 @@ describe('a DetailComment entities', () => {
       date: {},
       content: {},
       isDeleted: {},
+      likeCount: {},
     };
 
     // Action and Assert
@@ -35,6 +36,7 @@ describe('a DetailComment entities', () => {
       date: '2021-08-08T07:22:33.555Z',
       content: 'comment content',
       isDeleted: false,
+      likeCount: 2,
     };
 
     // Action
@@ -45,6 +47,7 @@ describe('a DetailComment entities', () => {
     expect(detailComment.username).toEqual(payload.username);
     expect(detailComment.date).toEqual(payload.date);
     expect(detailComment.content).toEqual(payload.content);
+    expect(detailComment.likeCount).toEqual(payload.likeCount);
   });
 
   it('should create comment object correctly and replace content value when isDeleted is true', () => {
@@ -55,6 +58,7 @@ describe('a DetailComment entities', () => {
       date: '2021-08-08T07:22:33.555Z',
       content: 'comment content',
       isDeleted: true,
+      likeCount: 2,
     };
 
     // Action
@@ -65,5 +69,6 @@ describe('a DetailComment entities', () => {
     expect(detailComment.username).toEqual(payload.username);
     expect(detailComment.date).toEqual(payload.date);
     expect(detailComment.content).toEqual('**komentar telah dihapus**');
+    expect(detailComment.likeCount).toEqual(payload.likeCount);
   });
 });
